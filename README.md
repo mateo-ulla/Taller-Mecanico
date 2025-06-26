@@ -1,4 +1,4 @@
-# TallerDB - Sistema de Gestión de Taller Mecánico
+# Sistema de Gestión de Taller Mecánico
 
 Este proyecto implementa una aplicación de consola en Python para gestionar las operaciones de un taller mecánico, incluyendo la administración de clientes, vehículos, mecánicos, fichas técnicas y facturación. Utiliza MySQL como motor de base de datos y la librería `pymysql` para la conexión.
 
