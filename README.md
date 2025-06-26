@@ -13,7 +13,7 @@ Este proyecto implementa una aplicación de consola en Python para gestionar las
 1. **Clonar el repositorio**
 
    ```bash
-   git clone https://github.com/tuusuario/tallerdb.git
+   git clone https://github.com/mateo-ulla/Taller-Mecanico
    ```
 
 2. **Crear entorno virtual (opcional pero recomendado)**
