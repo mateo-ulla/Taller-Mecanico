@@ -1,6 +1,6 @@
 # Taller Mecánico
 
-Este proyecto es una aplicación de consola en Python para la gestión de un taller mecánico, pensada para estudiantes de secundaria técnica en Argentina. Permite administrar clientes, autos, mecánicos, fichas técnicas y facturación usando una base de datos MySQL.
+Este proyecto es una aplicación de consola en Python para la gestión de un taller mecánico. Permite administrar clientes, autos, mecánicos, fichas técnicas y facturación usando una base de datos MySQL.
 
 ## Archivos del proyecto
 
