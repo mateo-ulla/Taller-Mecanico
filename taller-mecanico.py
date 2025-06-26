@@ -2,7 +2,13 @@ import os
 import pymysql
 import time
 
-class MiTaller:
+def limpiar_pantalla():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
+
+class BaseTaller:
     def __init__(self):
         try:
             self.db = pymysql.connect(
@@ -10,43 +16,64 @@ class MiTaller:
                 port=3306,
                 user="mateo",
                 password="1234",
-                database="taller_mecanico",
+                database="taller_mecanico"
             )
-            self.cursor = self.db.cursor()
-            print("\n¡Conectado a la base de datos del taller!\n")
-        except Exception as e:
-            print("No se pudo conectar a la base de datos:", e)
-            exit()
+            self.cur = self.db.cursor()
+            print("Conectado a la base de datos!")
+        except Exception as error:
+            print("No se pudo conectar:", error)
+            quit()
 
-    def limpiar(self):
-        os.system("cls" if os.name == "nt" else "clear")
-
-    def menu_principal(self):
-        print("\n--- Taller Mecánico ---")
-        print("1. Clientes")
-        print("2. Autos")
-        print("3. Mecánicos")
-        print("4. Fichas Técnicas")
-        print("5. Facturación")
-        print("6. Salir")
+    def mostrar_menu(self):
+        limpiar_pantalla()
+        print("--- MENU PRINCIPAL ---")
+        print("a) Clientes")
+        print("b) Autos")
+        print("c) Mecánicos")
+        print("d) Fichas Técnicas")
+        print("e) Facturación")
+        print("f) Salir")
 
     def menu_clientes(self):
-        print("\n--- Menú Clientes ---")
-        print("1. Listar clientes")
-        print("2. Agregar cliente")
-        print("3. Buscar cliente por DNI")
-        print("4. Borrar cliente")
-        print("5. Volver")
+        print("1) Listar clientes")
+        print("2) Nuevo cliente")
+        print("3) Buscar cliente")
+        print("4) Borrar cliente")
+        print("5) Volver")
 
-    def mostrar_clientes(self):
-        self.cursor.execute("SELECT * FROM Clientes")
-        clientes = self.cursor.fetchall()
-        if not clientes:
-            print("No hay clientes registrados.")
-        else:
-            for c in clientes:
-                print(f"DNI: {c[0]} | Nombre: {c[1]} {c[2]} | Tel: {c[4]}")
-        input("\nPresioná Enter para seguir...")
+    def menu_autos(self):
+        print("1) Listar autos")
+        print("2) Nuevo auto")
+        print("3) Buscar auto")
+        print("4) Borrar auto")
+        print("5) Volver")
+
+    def menu_mecanicos(self):
+        print("1) Listar mecánicos")
+        print("2) Nuevo mecánico")
+        print("3) Buscar mecánico")
+        print("4) Borrar mecánico")
+        print("5) Volver")
+
+    def menu_fichas(self):
+        print("1) Crear ficha técnica")
+        print("2) Ver ficha técnica")
+        print("3) Editar ficha técnica")
+        print("4) Volver")
+
+    def menu_facturacion(self):
+        print("1) Nueva factura")
+        print("2) Anular factura")
+        print("3) Ver facturas")
+        print("4) Volver")
+
+    # CLIENTES
+    def ver_clientes(self):
+        self.cur.execute("SELECT * FROM Clientes")
+        datos = self.cur.fetchall()
+        for cli in datos:
+            print(cli)
+        input("Presione Enter para volver...")
 
     def agregar_cliente(self):
         dni = input("DNI: ")
@@ -54,107 +81,76 @@ class MiTaller:
         apellido = input("Apellido: ")
         direccion = input("Dirección: ")
         telefono = input("Teléfono: ")
-        try:
-            self.cursor.execute(
-                "INSERT INTO Clientes (DNI, Nombre, Apellido, Direccion, Telefono) VALUES (%s, %s, %s, %s, %s)",
-                (dni, nombre, apellido, direccion, telefono),
-            )
-            self.db.commit()
-            print("Cliente guardado!")
-        except Exception as e:
-            print("Error al guardar cliente:", e)
-        input("\nPresioná Enter para seguir...")
+        self.cur.execute(
+            "INSERT INTO Clientes (DNI, Nombre, Apellido, Direccion, Telefono) VALUES (%s, %s, %s, %s, %s)",
+            (dni, nombre, apellido, direccion, telefono)
+        )
+        self.db.commit()
+        print("Cliente guardado!")
+        time.sleep(1)
 
     def buscar_cliente(self):
         dni = input("DNI del cliente: ")
-        self.cursor.execute("SELECT * FROM Clientes WHERE DNI=%s", (dni,))
-        c = self.cursor.fetchone()
-        if c:
-            print(f"DNI: {c[0]} | Nombre: {c[1]} {c[2]} | Dirección: {c[3]} | Tel: {c[4]}")
+        self.cur.execute("SELECT DNI, Nombre, Apellido, Telefono FROM Clientes WHERE DNI=%s", (dni,))
+        cli = self.cur.fetchone()
+        if cli:
+            print(f"DNI: {cli[0]} | Nombre: {cli[1]} | Apellido: {cli[2]} | Teléfono: {cli[3]}")
         else:
-            print("No se encontró ese cliente.")
-        input("\nPresioná Enter para seguir...")
+            print("No existe ese cliente.")
+        input("Presione Enter para volver...")
 
     def borrar_cliente(self):
-        dni = input("DNI del cliente a borrar: ")
-        self.cursor.execute("DELETE FROM Clientes WHERE DNI=%s", (dni,))
+        dni = input("DNI a borrar: ")
+        self.cur.execute("DELETE FROM Clientes WHERE DNI=%s", (dni,))
         self.db.commit()
-        print("Cliente eliminado (si existía).")
-        input("\nPresioná Enter para seguir...")
+        print("Cliente eliminado!")
+        time.sleep(1)
 
-    def menu_autos(self):
-        print("\n--- Menú Autos ---")
-        print("1. Listar autos")
-        print("2. Agregar auto")
-        print("3. Buscar auto por patente")
-        print("4. Borrar auto")
-        print("5. Volver")
-
-    def mostrar_autos(self):
-        self.cursor.execute("SELECT * FROM Vehiculos")
-        autos = self.cursor.fetchall()
-        if not autos:
-            print("No hay autos cargados.")
-        else:
-            for a in autos:
-                print(
-                    f"Patente: {a[0]} | Dueño: {a[1]} | Marca: {a[2]} | Modelo: {a[3]} | Color: {a[4]}"
-                )
-        input("\nPresioná Enter para seguir...")
+    # AUTOS
+    def ver_autos(self):
+        self.cur.execute("SELECT * FROM Vehiculos")
+        autos = self.cur.fetchall()
+        for auto in autos:
+            print(auto)
+        input("Presione Enter para volver...")
 
     def agregar_auto(self):
         patente = input("Patente: ")
-        dni = input("DNI del dueño: ")
+        dni = input("DNI dueño: ")
         marca = input("Marca: ")
         modelo = input("Modelo: ")
         color = input("Color: ")
-        try:
-            self.cursor.execute(
-                "INSERT INTO Vehiculos (Patente, DNI, Marca, Modelo, Color) VALUES (%s, %s, %s, %s, %s)",
-                (patente, dni, marca, modelo, color),
-            )
-            self.db.commit()
-            print("Auto guardado!")
-        except Exception as e:
-            print("Error al guardar auto:", e)
-        input("\nPresioná Enter para seguir...")
+        self.cur.execute(
+            "INSERT INTO Vehiculos (Patente, DNI, Marca, Modelo, Color) VALUES (%s, %s, %s, %s, %s)",
+            (patente, dni, marca, modelo, color)
+        )
+        self.db.commit()
+        print("Auto guardado!")
+        time.sleep(1)
 
     def buscar_auto(self):
         patente = input("Patente del auto: ")
-        self.cursor.execute("SELECT * FROM Vehiculos WHERE Patente=%s", (patente,))
-        a = self.cursor.fetchone()
-        if a:
-            print(
-                f"Patente: {a[0]} | Dueño: {a[1]} | Marca: {a[2]} | Modelo: {a[3]} | Color: {a[4]}"
-            )
+        self.cur.execute("SELECT Patente, Marca, Modelo FROM Vehiculos WHERE Patente=%s", (patente,))
+        auto = self.cur.fetchone()
+        if auto:
+            print(f"Patente: {auto[0]} | Marca: {auto[1]} | Modelo: {auto[2]}")
         else:
-            print("No se encontró ese auto.")
-        input("\nPresioná Enter para seguir...")
+            print("No existe ese auto.")
+        input("Presione Enter para volver...")
 
     def borrar_auto(self):
-        patente = input("Patente del auto a borrar: ")
-        self.cursor.execute("DELETE FROM Vehiculos WHERE Patente=%s", (patente,))
+        patente = input("Patente a borrar: ")
+        self.cur.execute("DELETE FROM Vehiculos WHERE Patente=%s", (patente,))
         self.db.commit()
-        print("Auto eliminado (si existía).")
-        input("\nPresioná Enter para seguir...")
+        print("Auto eliminado!")
+        time.sleep(1)
 
-    def menu_mecanicos(self):
-        print("\n--- Menú Mecánicos ---")
-        print("1. Listar mecánicos")
-        print("2. Agregar mecánico")
-        print("3. Buscar mecánico por legajo")
-        print("4. Borrar mecánico")
-        print("5. Volver")
-
-    def mostrar_mecanicos(self):
-        self.cursor.execute("SELECT * FROM Mecanicos")
-        ms = self.cursor.fetchall()
-        if not ms:
-            print("No hay mecánicos registrados.")
-        else:
-            for m in ms:
-                print(f"Legajo: {m[0]} | Nombre: {m[1]} {m[2]} | Rol: {m[3]} | Estado: {m[4]}")
-        input("\nPresioná Enter para seguir...")
+    # MECANICOS
+    def ver_mecanicos(self):
+        self.cur.execute("SELECT * FROM Mecanicos")
+        for m in self.cur.fetchall():
+            print(m)
+        input("Presione Enter para volver...")
 
     def agregar_mecanico(self):
         legajo = input("Legajo: ")
@@ -162,226 +158,238 @@ class MiTaller:
         apellido = input("Apellido: ")
         rol = input("Rol: ")
         estado = input("Estado (+/-): ")
-        try:
-            self.cursor.execute(
-                "INSERT INTO Mecanicos (Legajo, Nombre, Apellido, Rol, Estado) VALUES (%s, %s, %s, %s, %s)",
-                (legajo, nombre, apellido, rol, estado),
-            )
-            self.db.commit()
-            print("Mecánico guardado!")
-        except Exception as e:
-            print("Error al guardar mecánico:", e)
-        input("\nPresioná Enter para seguir...")
+        while estado not in ["+", "-"]:
+            print("Estado inválido")
+            estado = input("Estado (+/-): ")
+        self.cur.execute(
+            "INSERT INTO Mecanicos (Legajo, Nombre, Apellido, Rol, Estado) VALUES (%s, %s, %s, %s, %s)",
+            (legajo, nombre, apellido, rol, estado)
+        )
+        self.db.commit()
+        print("Mecánico guardado!")
+        time.sleep(1)
 
     def buscar_mecanico(self):
         legajo = input("Legajo del mecánico: ")
-        self.cursor.execute("SELECT * FROM Mecanicos WHERE Legajo=%s", (legajo,))
-        m = self.cursor.fetchone()
+        self.cur.execute("SELECT Legajo, Nombre, Apellido, Rol, Estado FROM Mecanicos WHERE Legajo=%s", (legajo,))
+        m = self.cur.fetchone()
         if m:
-            print(f"Legajo: {m[0]} | Nombre: {m[1]} {m[2]} | Rol: {m[3]} | Estado: {m[4]}")
+            print(f"Legajo: {m[0]} | Nombre: {m[1]} | Apellido: {m[2]} | Rol: {m[3]} | Estado: {m[4]}")
         else:
-            print("No se encontró ese mecánico.")
-        input("\nPresioná Enter para seguir...")
+            print("No existe ese mecánico.")
+        input("Presione Enter para volver...")
 
     def borrar_mecanico(self):
-        legajo = input("Legajo del mecánico a borrar: ")
-        self.cursor.execute("DELETE FROM Mecanicos WHERE Legajo=%s", (legajo,))
+        legajo = input("Legajo a borrar: ")
+        self.cur.execute("DELETE FROM Mecanicos WHERE Legajo=%s", (legajo,))
         self.db.commit()
-        print("Mecánico eliminado (si existía).")
-        input("\nPresioná Enter para seguir...")
+        print("Mecánico eliminado!")
+        time.sleep(1)
 
-    def menu_fichas(self):
-        print("\n--- Menú Fichas Técnicas ---")
-        print("1. Crear ficha técnica")
-        print("2. Ver fichas técnicas")
-        print("3. Modificar ficha técnica")
-        print("4. Volver")
-
+    # FICHAS TECNICAS
     def crear_ficha(self):
-        id_ficha = input("ID de ficha: ")
-        dni = input("DNI del cliente: ")
+        limpiar_pantalla()
+        idf = input("ID ficha: ")
+        dni = input("DNI cliente: ")
         marca = input("Marca: ")
         modelo = input("Modelo: ")
         patente = input("Patente: ")
         motivo = input("Motivo ingreso: ")
         fecha = input("Fecha ingreso (YYYY-MM-DD): ")
         try:
-            self.cursor.execute(
+            self.cur.execute(
                 "INSERT INTO Ficha_tecnica (id_ficha, dni_cliente, marca, modelo, patente, motivo_ingreso, fecha_ingreso) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (id_ficha, dni, marca, modelo, patente, motivo, fecha),
+                (idf, dni, marca, modelo, patente, motivo, fecha)
             )
             self.db.commit()
             print("Ficha técnica guardada!")
         except Exception as e:
-            print("Error al guardar ficha técnica:", e)
-        input("\nPresioná Enter para seguir...")
+            print("Error al guardar ficha:", e)
+        time.sleep(1)
 
-    def ver_fichas(self):
-        self.cursor.execute("SELECT * FROM Ficha_tecnica")
-        fichas = self.cursor.fetchall()
-        if not fichas:
-            print("No hay fichas técnicas.")
-        else:
-            for f in fichas:
-                print(f)
-        input("\nPresioná Enter para seguir...")
-
-    def modificar_ficha(self):
-        id_ficha = input("ID de la ficha a modificar: ")
-        self.cursor.execute("SELECT * FROM Ficha_tecnica WHERE id_ficha=%s", (id_ficha,))
-        ficha = self.cursor.fetchone()
+    def editar_ficha(self):
+        limpiar_pantalla()
+        idf = input("ID de la ficha a editar: ")
+        self.cur.execute("SELECT * FROM Ficha_tecnica WHERE id_ficha=%s", (idf,))
+        ficha = self.cur.fetchone()
         if not ficha:
             print("No existe esa ficha.")
-            input("\nPresioná Enter para seguir...")
+            time.sleep(1)
             return
-        print("¿Qué campo querés cambiar?")
-        print("1. Marca\n2. Modelo\n3. Patente\n4. Motivo ingreso\n5. Fecha ingreso\n6. DNI cliente")
+        print("1) Cambiar datos del auto")
+        print("2) Cambiar DNI cliente")
+        print("3) Cancelar")
         op = input("Opción: ")
-        campos = ["marca", "modelo", "patente", "motivo_ingreso", "fecha_ingreso", "dni_cliente"]
-        if op in [str(i+1) for i in range(6)]:
-            nuevo = input("Nuevo valor: ")
-            self.cursor.execute(f"UPDATE Ficha_tecnica SET {campos[int(op)-1]}=%s WHERE id_ficha=%s", (nuevo, id_ficha))
-            self.db.commit()
-            print("Ficha modificada!")
+        if op == "1":
+            campo = input("¿Qué campo? (marca/modelo/patente): ")
+            if campo not in ["marca", "modelo", "patente"]:
+                print("Campo inválido.")
+                return
+            nuevo = input(f"Nuevo valor para {campo}: ")
+            self.cur.execute(f"UPDATE Ficha_tecnica SET {campo}=%s WHERE id_ficha=%s", (nuevo, idf))
+        elif op == "2":
+            nuevo = input("Nuevo DNI cliente: ")
+            self.cur.execute("UPDATE Ficha_tecnica SET dni_cliente=%s WHERE id_ficha=%s", (nuevo, idf))
         else:
-            print("Opción inválida.")
-        input("\nPresioná Enter para seguir...")
+            print("Cancelado.")
+            return
+        self.db.commit()
+        print("Ficha técnica actualizada!")
+        time.sleep(1)
 
-    def menu_facturacion(self):
-        print("\n--- Menú Facturación ---")
-        print("1. Nueva factura")
-        print("2. Anular factura")
-        print("3. Ver facturas")
-        print("4. Volver")
+    def ver_fichas(self):
+        limpiar_pantalla()
+        idf = input("ID de ficha (vacío para todas): ")
+        if idf.strip() == "":
+            self.cur.execute("SELECT * FROM Ficha_tecnica")
+            fichas = self.cur.fetchall()
+            if not fichas:
+                print("No hay fichas.")
+            else:
+                for f in fichas:
+                    print(f)
+        else:
+            self.cur.execute("SELECT * FROM Ficha_tecnica WHERE id_ficha=%s", (idf,))
+            ficha = self.cur.fetchone()
+            if ficha:
+                print(ficha)
+            else:
+                print("No existe esa ficha.")
+        input("Presione Enter para volver...")
 
+    # FACTURACION
     def nueva_factura(self):
-        dni = input("DNI del cliente: ")
+        limpiar_pantalla()
+        dni = input("DNI cliente: ")
         fecha = input("Fecha (YYYY-MM-DD): ")
         monto = input("Monto: ")
+        estado = "Emitida"
         try:
-            self.cursor.execute(
-                "INSERT INTO Facturacion (DNI_Cliente, Fecha_Factura, Monto, Estado) VALUES (%s, %s, %s, 'Emitida')",
-                (dni, fecha, monto),
+            self.cur.execute(
+                "INSERT INTO Facturacion (DNI_Cliente, Fecha_Factura, Monto, Estado) VALUES (%s, %s, %s, %s)",
+                (dni, fecha, monto, estado)
             )
             self.db.commit()
-            print("Factura emitida!")
+            print("Factura guardada!")
         except Exception as e:
-            print("Error al emitir factura:", e)
-        input("\nPresioná Enter para seguir...")
+            print("Error al guardar factura:", e)
+        time.sleep(1)
 
     def anular_factura(self):
-        idf = input("ID de la factura a anular: ")
-        self.cursor.execute("UPDATE Facturacion SET Estado='Anulada' WHERE id_factura=%s", (idf,))
-        self.db.commit()
-        print("Factura anulada (si existía).")
-        input("\nPresioná Enter para seguir...")
+        limpiar_pantalla()
+        idf = input("ID de factura a anular: ")
+        self.cur.execute("UPDATE Facturacion SET Estado='Anulada' WHERE id_factura=%s", (idf,))
+        if self.cur.rowcount == 0:
+            print("No existe esa factura.")
+        else:
+            self.db.commit()
+            print("Factura anulada!")
+        time.sleep(1)
 
     def ver_facturas(self):
-        self.cursor.execute("SELECT * FROM Facturacion")
-        facturas = self.cursor.fetchall()
-        if not facturas:
-            print("No hay facturas.")
+        limpiar_pantalla()
+        idf = input("ID de factura (vacío para todas): ")
+        if idf.strip() == "":
+            self.cur.execute("SELECT * FROM Facturacion")
+            facturas = self.cur.fetchall()
+            if not facturas:
+                print("No hay facturas.")
+            else:
+                for f in facturas:
+                    print(f)
         else:
-            for f in facturas:
+            self.cur.execute("SELECT * FROM Facturacion WHERE id_factura=%s", (idf,))
+            f = self.cur.fetchone()
+            if f:
                 print(f)
-        input("\nPresioná Enter para seguir...")
+            else:
+                print("No existe esa factura.")
+        input("Presione Enter para volver...")
 
-    def salir(self):
-        print("\nChau! Cerrando el taller...")
-        self.cursor.close()
+    def cerrar(self):
+        print("Chau! Cerrando todo...")
+        self.cur.close()
         self.db.close()
-        exit()
+        quit()
 
+# --- PROGRAMA PRINCIPAL ---
 
-# --- Programa principal ---
-taller = MiTaller()
-while True:
-    taller.limpiar()
-    taller.menu_principal()
-    op = input("\nElegí una opción: ")
-    if op == "1":
-        taller.limpiar()
-        while True:
+def main():
+    taller = BaseTaller()
+    while True:
+        taller.mostrar_menu()
+        op = input("Opción: ").lower()
+        if op == "a":
+            limpiar_pantalla()
             taller.menu_clientes()
-            op2 = input("Opción: ")
-            if op2 == "1":
-                taller.mostrar_clientes()
-            elif op2 == "2":
+            sub = input("Opción: ")
+            if sub == "1":
+                taller.ver_clientes()
+            elif sub == "2":
                 taller.agregar_cliente()
-            elif op2 == "3":
+            elif sub == "3":
                 taller.buscar_cliente()
-            elif op2 == "4":
+            elif sub == "4":
                 taller.borrar_cliente()
-            elif op2 == "5":
-                break
-            else:
-                print("Opción inválida.")
-    elif op == "2":
-        taller.limpiar()
-        while True:
+            elif sub == "5":
+                continue
+        elif op == "b":
+            limpiar_pantalla()
             taller.menu_autos()
-            op2 = input("Opción: ")
-            if op2 == "1":
-                taller.mostrar_autos()
-            elif op2 == "2":
+            sub = input("Opción: ")
+            if sub == "1":
+                taller.ver_autos()
+            elif sub == "2":
                 taller.agregar_auto()
-            elif op2 == "3":
+            elif sub == "3":
                 taller.buscar_auto()
-            elif op2 == "4":
+            elif sub == "4":
                 taller.borrar_auto()
-            elif op2 == "5":
-                break
-            else:
-                print("Opción inválida.")
-    elif op == "3":
-        taller.limpiar()
-        while True:
+            elif sub == "5":
+                continue
+        elif op == "c":
+            limpiar_pantalla()
             taller.menu_mecanicos()
-            op2 = input("Opción: ")
-            if op2 == "1":
-                taller.mostrar_mecanicos()
-            elif op2 == "2":
+            sub = input("Opción: ")
+            if sub == "1":
+                taller.ver_mecanicos()
+            elif sub == "2":
                 taller.agregar_mecanico()
-            elif op2 == "3":
+            elif sub == "3":
                 taller.buscar_mecanico()
-            elif op2 == "4":
+            elif sub == "4":
                 taller.borrar_mecanico()
-            elif op2 == "5":
-                break
-            else:
-                print("Opción inválida.")
-    elif op == "4":
-        taller.limpiar()
-        while True:
+            elif sub == "5":
+                continue
+        elif op == "d":
+            limpiar_pantalla()
             taller.menu_fichas()
-            op2 = input("Opción: ")
-            if op2 == "1":
+            sub = input("Opción: ")
+            if sub == "1":
                 taller.crear_ficha()
-            elif op2 == "2":
+            elif sub == "2":
                 taller.ver_fichas()
-            elif op2 == "3":
-                taller.modificar_ficha()
-            elif op2 == "4":
-                break
-            else:
-                print("Opción inválida.")
-    elif op == "5":
-        taller.limpiar()
-        while True:
+            elif sub == "3":
+                taller.editar_ficha()
+            elif sub == "4":
+                continue
+        elif op == "e":
+            limpiar_pantalla()
             taller.menu_facturacion()
-            op2 = input("Opción: ")
-            if op2 == "1":
+            sub = input("Opción: ")
+            if sub == "1":
                 taller.nueva_factura()
-            elif op2 == "2":
+            elif sub == "2":
                 taller.anular_factura()
-            elif op2 == "3":
+            elif sub == "3":
                 taller.ver_facturas()
-            elif op2 == "4":
-                break
-            else:
-                print("Opción inválida.")
-    elif op == "6":
-        taller.salir()
-    else:
-        print("Opción inválida. Probá de nuevo.")
-        time.sleep(1)
+            elif sub == "4":
+                continue
+        elif op == "f":
+            taller.cerrar()
+        else:
+            print("Opción inválida!")
+            time.sleep(1)
+
+if __name__ == "__main__":
+    main()
