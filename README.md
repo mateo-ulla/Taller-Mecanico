@@ -13,7 +13,7 @@ Este proyecto implementa una aplicación de consola en Python para gestionar las
 1. **Clonar el repositorio**
 
    ```bash
-   git clone https://github.com/mateo-ulla/Taller-Mecanico.git
+   git clone https://github.com/tuusuario/tallerdb.git
    ```
 
 2. **Crear entorno virtual (opcional pero recomendado)**
@@ -32,63 +32,95 @@ Este proyecto implementa una aplicación de consola en Python para gestionar las
 
 4. **Configurar la base de datos**
 
-   * Iniciar sesión en MySQL:
+   1. **Crear la base de datos**
 
-     ```sql
-     mysql -u root -p
-     ```
-   * Crear la base de datos y tablas necesarias:
+      ```sql
+      CREATE DATABASE IF NOT EXISTS `Taller_Mecanico`;
+      USE `Taller_Mecanico`;
+      ```
 
-     ```sql
-     CREATE DATABASE taller_mecanico;
-     USE taller_mecanico;
+   2. **Crear tablas**
 
-     CREATE TABLE Clientes (
-       DNI INT PRIMARY KEY,
-       Nombre VARCHAR(100),
-       Apellido VARCHAR(100),
-       Direccion VARCHAR(255),
-       Telefono VARCHAR(50)
-     );
+      ```sql
+      -- Clientes
+      CREATE TABLE IF NOT EXISTS `Clientes` (
+          `DNI` VARCHAR(255) PRIMARY KEY,
+          `Nombre` VARCHAR(255),
+          `Apellido` VARCHAR(255),
+          `Direccion` VARCHAR(255),
+          `Telefono` VARCHAR(255)
+      );
 
-     CREATE TABLE Vehiculos (
-       Patente VARCHAR(15) PRIMARY KEY,
-       DNI INT,
-       Marca VARCHAR(50),
-       Modelo VARCHAR(50),
-       Color VARCHAR(30),
-       FOREIGN KEY (DNI) REFERENCES Clientes(DNI)
-     );
+      -- Vehículos
+      CREATE TABLE IF NOT EXISTS `Vehiculos` (
+          `Patente` VARCHAR(255) PRIMARY KEY,
+          `DNI` VARCHAR(255),
+          `Marca` VARCHAR(255),
+          `Modelo` VARCHAR(255),
+          `Color` VARCHAR(255),
+          FOREIGN KEY (`DNI`) REFERENCES `Clientes`(`DNI`)
+      );
 
-     CREATE TABLE Mecanicos (
-       Legajo VARCHAR(20) PRIMARY KEY,
-       Nombre VARCHAR(100),
-       Apellido VARCHAR(100),
-       Rol VARCHAR(50),
-       Estado ENUM('+','-')
-     );
+      -- Mecánicos
+      CREATE TABLE IF NOT EXISTS `Mecanicos` (
+          `Legajo` VARCHAR(255) PRIMARY KEY,
+          `Nombre` VARCHAR(255),
+          `Apellido` VARCHAR(255),
+          `Rol` VARCHAR(255),
+          `Estado` VARCHAR(255)
+      );
 
-     CREATE TABLE Ficha_tecnica (
-       id_ficha INT PRIMARY KEY,
-       dni_cliente INT,
-       marca VARCHAR(50),
-       modelo VARCHAR(50),
-       patente VARCHAR(15),
-       motivo_ingreso TEXT,
-       fecha_ingreso DATE,
-       FOREIGN KEY (dni_cliente) REFERENCES Clientes(DNI),
-       FOREIGN KEY (patente) REFERENCES Vehiculos(Patente)
-     );
+      -- Repuestos
+      CREATE TABLE IF NOT EXISTS `Repuestos` (
+          `Id` INT PRIMARY KEY,
+          `Nombre` VARCHAR(255),
+          `Precio` INT,
+          `Fabricante` VARCHAR(255)
+      );
 
-     CREATE TABLE Facturacion (
-       id_factura INT AUTO_INCREMENT PRIMARY KEY,
-       DNI_Cliente INT,
-       Fecha_Factura DATE,
-       Monto DECIMAL(10,2),
-       Estado ENUM('Emitida','Anulada'),
-       FOREIGN KEY (DNI_Cliente) REFERENCES Clientes(DNI)
-     );
-     ```
+      -- Reparaciones
+      CREATE TABLE IF NOT EXISTS `Reparaciones` (
+          `id_reparacion` INT PRIMARY KEY,
+          `Fecha_entrada` DATE,
+          `Hora_entrada` TIME,
+          `Patente` VARCHAR(255),
+          `Legajo` VARCHAR(255),
+          `DNI` VARCHAR(255),
+          FOREIGN KEY (`Patente`) REFERENCES `Vehiculos`(`Patente`),
+          FOREIGN KEY (`Legajo`) REFERENCES `Mecanicos`(`Legajo`),
+          FOREIGN KEY (`DNI`) REFERENCES `Clientes`(`DNI`)
+      );
+
+      -- Relación Mecánico-Reparaciones
+      CREATE TABLE IF NOT EXISTS `Mecanico_Reparaciones` (
+          `Legajo` VARCHAR(255),
+          `id_reparacion` INT,
+          PRIMARY KEY (`Legajo`, `id_reparacion`),
+          FOREIGN KEY (`Legajo`) REFERENCES `Mecanicos`(`Legajo`),
+          FOREIGN KEY (`id_reparacion`) REFERENCES `Reparaciones`(`id_reparacion`)
+      );
+
+      -- Ficha técnica
+      CREATE TABLE IF NOT EXISTS `Ficha_tecnica` (
+          `id_ficha` VARCHAR(255) PRIMARY KEY,
+          `dni_cliente` VARCHAR(255),
+          `marca` VARCHAR(255) NOT NULL,
+          `modelo` VARCHAR(255) NOT NULL,
+          `patente` VARCHAR(255) NOT NULL,
+          `motivo_ingreso` VARCHAR(255),
+          `fecha_ingreso` DATE
+      );
+
+      -- Facturación
+      CREATE TABLE IF NOT EXISTS `Facturacion` (
+          `id_factura` INT PRIMARY KEY AUTO_INCREMENT,
+          `DNI_Cliente` VARCHAR(255),
+          `Fecha_Factura` DATE,
+          `Monto` DECIMAL(10, 2),
+          `Estado` ENUM('Emitida', 'Anulada'),
+          FOREIGN KEY (`DNI_Cliente`) REFERENCES `Clientes`(`DNI`)
+      );
+      ```
 
 5. **Actualizar credenciales**
 
